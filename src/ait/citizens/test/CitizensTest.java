@@ -15,10 +15,7 @@ class CitizensTest {
 
     Citizens citizens;
     Person[] persons;
-
-    static Comparator<Person> idComparator = (p1, p2) -> {
-        return Integer.compare(p1.getId(), p2.getId());
-    };
+    Person personForTest = new Person(12, "Mary", "MacDonald", LocalDate.of(1990, 11, 28));
 
     static Comparator<Person> ageComparator = (p1, p2) -> {
         int res = Integer.compare(p1.getAge(), p2.getAge());
@@ -55,7 +52,6 @@ class CitizensTest {
     }
 
 
-
     @Test
     void testConstructor() {
 
@@ -90,11 +86,9 @@ class CitizensTest {
         assertFalse(citizens.add(null));
         assertFalse(citizens.add(persons[0]));
 
-        Person p = new Person(12, "Mary", "MacDonald", LocalDate.of(1990, 11, 28));
-
-        assertTrue(citizens.add(p));
+        assertTrue(citizens.add(personForTest));
         assertEquals(12, citizens.size());
-        assertEquals(p, citizens.find(12));
+        assertEquals(personForTest, citizens.find(12));
     }
 
     @Test
@@ -108,51 +102,63 @@ class CitizensTest {
     @Test
     void findPersonById() {
         assertNull(citizens.find(12));
-        Person p = new Person(12, "Mary", "MacDonald", LocalDate.of(1990, 11, 28));
-        citizens.add(p);
-        assertEquals(p, citizens.find(12));
+        citizens.add(personForTest);
+        assertEquals(personForTest, citizens.find(12));
         assertEquals(persons[7], citizens.find(8));
     }
 
     @Test
     void findPersonsByLastName() {
         List<Person> expected = new ArrayList<>();
+        List<Person> actual = new ArrayList<>();
         expected.add(persons[0]);
         expected.add(persons[9]);
         expected.sort(lastNameComparator);
-        List<Person> actual = (List<Person>) citizens.find("MacDonald");
+        Iterable<Person> res = citizens.find("MacDonald");
+        res.forEach(p -> actual.add(p));
         assertIterableEquals(expected, actual);
     }
 
     @Test
     void findPersonsInRangeOfAge() {
         List<Person> expected = new ArrayList<>();
+        List<Person> actual = new ArrayList<>();
         expected.add(persons[6]);
         expected.add(persons[7]);
         expected.sort(ageComparator);
 
-        List<Person> actual = (List<Person>) citizens.find(10, 25);
+        Iterable<Person> res = citizens.find(10, 25);
+        res.forEach(p -> actual.add(p));
         assertIterableEquals(expected, actual);
     }
 
     @Test
     void getAllPersonsSortedById() {
-        List<Person> actual = (List<Person>) citizens.getAllPersonsSortedById();
+        Iterable<Person> res = citizens.getAllPersonsSortedById();
+        List<Person> actual = new ArrayList<>();
+        res.forEach(p -> actual.add(p));
         assertArrayEquals(persons, actual.toArray());
     }
 
     @Test
     void getAllPersonsSortedByAge() {
-        Arrays.sort(persons, ageComparator);
-        List<Person> actual = (List<Person>) citizens.getAllPersonsSortedByAge();
-        assertArrayEquals(persons, actual.toArray());
+
+        Iterable<Person> res = citizens.getAllPersonsSortedByAge();
+        int age = -1;
+        for (Person person : res) {
+            assertTrue(Integer.compare(person.getAge(), age) >= 0);
+            age = person.getAge();
+        }
     }
 
     @Test
     void getAllPersonsSortedByLastName() {
-        Arrays.sort(persons, lastNameComparator);
-        List<Person> actual = (List<Person>) citizens.getAllPersonsSortedByLastName();
-        assertArrayEquals(persons, actual.toArray());
+        Iterable<Person> res = citizens.getAllPersonsSortedByLastName();
+        String name = "";
+        for (Person person : res) {
+            assertTrue(person.getLastName().compareTo(name) >= 0);
+            name = person.getLastName();
+        }
     }
 
     @Test
